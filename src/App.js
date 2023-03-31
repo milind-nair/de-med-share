@@ -4,6 +4,7 @@ import Ka from "./artifacts/contracts/Ka.sol/Ka.json";
 
 function App() {
   const [kaContract, setKaContract] = useState();
+  const [authorized, setAuthorization] =useState();
   const kaAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"; // replace with your contract address
   const kaABI = Ka.abi;
 
@@ -28,6 +29,7 @@ function App() {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const contract = new ethers.Contract(kaAddress, Ka.abi, signer);
+      console.log(contract);
       const tx = await contract.ApproveRequestor(kaAddress, imageHash);
       await tx.wait();
       console.log("Transaction complete:", tx.hash);
@@ -44,14 +46,20 @@ function App() {
   }, [kaContract]);
 
   async function checkAuthorisation(requesterAddress, patientAddress) {
-    if (kaContract.isApprovedRequestor[requesterAddress] == true) {
+    console.log(await kaContract.isApprovedRequestor[requesterAddress]);
+    if ((await kaContract.isApprovedRequestor[requesterAddress]) == true) {
+      console.log("test1");
       if (patientAddress == kaContract.patient) {
-        const authorized = await kaContract.checkAuthorisation(
-          requesterAddress,
-          patientAddress
-        );
-        console.log(authorized);
-        kaContract.setAuthorization(authorized);
+        try {
+          const authorized = await kaContract.checkAuthorisation(
+            requesterAddress,
+            patientAddress
+          );
+          console.log(authorized);
+          kaContract.setAuthorization(authorized);
+        } catch (e) {
+          console.log(e);
+        }
       }
     }
   }
