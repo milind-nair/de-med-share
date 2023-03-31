@@ -7,7 +7,6 @@ contract Ka {
     address public patient;
     string public imagedescription;
     string patientimagehash;
-    // "use strict";
     mapping(address => bool) public isApprovedRequestor;
     mapping(address => string) public imageHashes;
 

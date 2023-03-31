@@ -1,50 +1,60 @@
-import logo from "./logo.svg";
-import "./App.css";
 import { ethers } from "ethers";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Ka from "./artifacts/contracts/Ka.sol/Ka.json";
 
-const greeterAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9";
+function App() {
+  const [kaContract, setKaContract] = useState();
+  const kaAddress = "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"; // replace with your contract address
+  const kaABI = Ka.abi;
 
-async function fetchData() {
-  if (typeof window.ethereum !== "undefined") {
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    // window.ethereum.enable();
-    const signer = provider.getSigner();
-    const gp = provider.getGasPrice();
-    console.log(gp);
-    const contract = new ethers.Contract(greeterAddress, Ka.abi, signer, {
-      gasPrice: gp,
-      gasLimit: 10000000,
-    });
-    // console.log(contract);
+  useEffect(() => {
+    async function setup() {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      await window.ethereum.enable();
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(kaAddress, kaABI, signer);
+      setKaContract(contract);
+    }
+    setup();
+  }, []);
 
-    console.log("provider", contract);
+  async function handleCreateContract() {
+    const tx = await kaContract.CreateContract();
+    const receipt = await tx.wait();
+    console.log("Transaction Receipt:", receipt);
+  }
+  async function ApproveRequestor(requesterAddress, imageHash) {
     try {
-      await contract.CreateContract();
-      await contract.ApproveRequestor(
-        "0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199",
-        "QmSnVAuUz2dp4StPrAoMPVi3Bpt2d24Joch3jTfqA71rvS"
-      );
-      const data = await contract.checkAuthorisation(
-        "0x8626f6940e2eb28930efb4cef49b2d1f2c9c1199",
-        "QmSnVAuUz2dp4StPrAoMPVi3Bpt2d24Joch3jTfqA71rvS"
-      );
-      console.log("data: ", data);
-    } catch (err) {
-      console.log("Error: ", err);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(kaAddress, Ka.abi, signer);
+      const tx = await contract.ApproveRequestor(kaAddress, imageHash);
+      await tx.wait();
+      console.log("Transaction complete:", tx.hash);
+    } catch (error) {
+      console.log("Transaction failed:", error);
     }
   }
-}
+  useEffect(() => {
+    if (kaContract) {
+      kaContract.on("Approved", (requesterAddress, info) => {
+        console.log(`Requester ${requesterAddress} has been approved.`);
+      });
+    }
+  }, [kaContract]);
 
-function App() {
   return (
-    <div className="App">
+    <div>
+      <button onClick={handleCreateContract}>Create Contract</button>
       <button
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        onClick={fetchData}
+        onClick={() =>
+          ApproveRequestor(
+            "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+            "QmSnVAuUz2dp4StPrAoMPVi3Bpt2d24Joch3jTfqA71rvS"
+          )
+        }
       >
-        Fetch Greeting
+        Approve Requestor
       </button>
     </div>
   );
