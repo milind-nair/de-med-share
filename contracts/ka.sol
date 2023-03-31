@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-import "hardhat/console.log"
+import "hardhat/console.sol";
 
-contract kasol {
+contract Ka {
     address public patient;
     string public imagedescription;
     string patientimagehash;
-
+    // "use strict";
     mapping(address => bool) public isApprovedRequestor;
     mapping(address => string) public imageHashes;
 
-    constructor() {
-        imagedescription = "Photo of an Unemployed Guy";
+    constructor(
+        string memory _imagedescription,
+        string memory _patientimageHash
+    ) {
+        imagedescription = _imagedescription;
+        console.log("Hello");
         patient = msg.sender;
-        patientimagehash = "QmSnVAuUz2dp4StPrAoMPVi3Bpt2d24Joch3jTfqA71rvS";
+        patientimagehash = _patientimageHash;
+        // CreateContract();
     }
 
     modifier Onlypatient() {
@@ -36,14 +41,21 @@ contract kasol {
     event AuthorizationSuccess(address requester, string info, address patient);
     event AuthorizationFailed(address requester, string info, address patient);
 
-    function CreateContract() public Onlypatient {
+    // function CreateContract() public Onlypatient {
+    //     emit ContractCreated(
+    //         msg.sender,
+    //         "A contract has been created by the patient."
+    //     );
+    // }
+
+    function CreateContract() public {
         emit ContractCreated(
             msg.sender,
             "A contract has been created by the patient."
         );
     }
 
-    function RequestAccess() public Notpatient {
+    function RequestAccess() public {
         emit RequestedForApproval(
             msg.sender,
             "is requesting access to the patient image hash."
@@ -53,7 +65,7 @@ contract kasol {
     function ApproveRequestor(
         address requesterAddress,
         string memory imageHash
-    ) public Onlypatient {
+    ) public {
         imageHashes[requesterAddress] = imageHash;
         if (
             keccak256(abi.encodePacked(imageHashes[requesterAddress])) ==
