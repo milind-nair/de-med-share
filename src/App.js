@@ -43,6 +43,19 @@ function App() {
     }
   }, [kaContract]);
 
+  async function checkAuthorisation(requesterAddress, patientAddress) {
+    if (kaContract.isApprovedRequestor[requesterAddress] == true) {
+      if (patientAddress == kaContract.patient) {
+        const authorized = await kaContract.checkAuthorisation(
+          requesterAddress,
+          patientAddress
+        );
+        console.log(authorized);
+        kaContract.setAuthorization(authorized);
+      }
+    }
+  }
+
   return (
     <div>
       <button onClick={handleCreateContract}>Create Contract</button>
@@ -56,6 +69,18 @@ function App() {
       >
         Approve Requestor
       </button>
+      <div>
+        <button
+          onClick={() =>
+            checkAuthorisation(
+              "0xbDA5747bFD65F08deb54cb465eB87D40e51B197E",
+              "QmSnVAuUz2dp4StPrAoMPVi3Bpt2d24Joch3jTfqA71rvS"
+            )
+          }
+        >
+          Create Contract
+        </button>
+      </div>
     </div>
   );
 }
